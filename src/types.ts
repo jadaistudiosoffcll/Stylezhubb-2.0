@@ -16,6 +16,7 @@ export interface User {
     id_card?: string;
   };
   subscription_tier?: 'basic' | 'professional' | 'executive' | 'elite';
+  purchased_points?: number;
   black_room_alias?: string;
   trust_score: number;
   created_at: string;
@@ -205,4 +206,7 @@ export interface CryptoBroker {
   }>;
   unlocked?: boolean;
   activeInvestment?: CryptoBrokerInvestment | null;
+  is_crypto?: boolean;
+  external_link?: string;
+  uploaded_html?: string;
 }

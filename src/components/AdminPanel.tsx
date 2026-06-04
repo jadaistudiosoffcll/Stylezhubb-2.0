@@ -15,13 +15,107 @@ export default function AdminPanel({ currentUserId, onSettingsUpdate, onRefreshU
   const [settings, setSettings] = useState<SystemSettings | null>(null);
   const [stats, setStats] = useState<any>(null);
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "withdrawals" | "settings" | "logs">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "users" | "withdrawals" | "settings" | "logs" | "products">("dashboard");
   const [isLoading, setIsLoading] = useState(false);
   const [isWiping, setIsWiping] = useState(false);
 
   // States for updating credit packages
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [pointsToSet, setPointsToSet] = useState<string>("");
+
+  // Product management states
+  const [galleryItems, setGalleryItems] = useState<any[]>([]);
+  const [marketListings, setMarketListings] = useState<any[]>([]);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newPricePoints, setNewPricePoints] = useState("150");
+  const [newPriceMoney, setNewPriceMoney] = useState("15");
+  const [newPreviewImage, setNewPreviewImage] = useState("");
+  const [newDemoUrl, setNewDemoUrl] = useState("");
+
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle || !newDesc) {
+      alert("Please fill in title and description.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/gallery/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentAdminId: currentUserId,
+          title: newTitle,
+          description: newDesc,
+          price_points: parseInt(newPricePoints) || 150,
+          price_money: parseFloat(newPriceMoney) || 15,
+          preview_image: newPreviewImage,
+          demo_url: newDemoUrl
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Product template successfully added!");
+        setNewTitle("");
+        setNewDesc("");
+        setNewPricePoints("150");
+        setNewPriceMoney("15");
+        setNewPreviewImage("");
+        setNewDemoUrl("");
+        fetchAdminData();
+      } else {
+        alert(data.error || "Failed to add product.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteProduct = async (itemId: string) => {
+    if (!window.confirm("Purge this premium gallery item product?")) return;
+    try {
+      const res = await fetch("/api/admin/gallery/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentAdminId: currentUserId,
+          itemId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Product template deleted.");
+        fetchAdminData();
+      } else {
+        alert(data.error || "Failed to delete product.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteMarketListing = async (listingId: string) => {
+    if (!window.confirm("Purge this user's marketplace product listing item?")) return;
+    try {
+      const res = await fetch("/api/admin/marketplace/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentAdminId: currentUserId,
+          listingId
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Marketplace listing item deleted.");
+        fetchAdminData();
+      } else {
+        alert(data.error || "Failed to delete listing.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     fetchAdminData();
@@ -51,6 +145,14 @@ export default function AdminPanel({ currentUserId, onSettingsUpdate, onRefreshU
         const lRes = await fetch("/api/admin/logs");
         const lData = await lRes.json();
         setLogs(lData);
+      } else if (activeTab === "products") {
+        const galRes = await fetch("/api/gallery/list");
+        const galData = await galRes.json();
+        setGalleryItems(galData);
+
+        const mktRes = await fetch("/api/marketplace/list");
+        const mktData = await mktRes.json();
+        setMarketListings(mktData);
       }
     } catch (err) {
       console.error("Admin retrieve error:", err);
@@ -308,6 +410,17 @@ export default function AdminPanel({ currentUserId, onSettingsUpdate, onRefreshU
           }`}
         >
           System Logs Audits
+        </button>
+        <button
+          id="admin-tab-products"
+          onClick={() => setActiveTab("products")}
+          className={`px-4 py-1.5 rounded-xl border transition-all ${
+            activeTab === "products"
+              ? "bg-red-500 text-gray-950 border-red-500"
+              : "bg-slate-900 border-slate-800 text-gray-400 hover:text-white"
+          }`}
+        >
+          📦 Store Products
         </button>
       </div>
 
@@ -694,6 +807,133 @@ export default function AdminPanel({ currentUserId, onSettingsUpdate, onRefreshU
                     <div className="text-[9px] text-gray-400 mt-0.5 text-slate-500">By: {l.user_email} • User-ID: {l.user_id}</div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 6: STORE PRODUCTS MANAGEMENT */}
+          {activeTab === "products" && (
+            <div className="space-y-6">
+              <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5">
+                <h3 className="text-xs font-black uppercase tracking-widest text-[#00E5FF] mb-4">✨ Add Premium Gallery Source Product</h3>
+                <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase">Product Title</label>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white"
+                      placeholder="e.g. OPay Premium Cloned Script V2"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase">Display Price (Points)</label>
+                    <input
+                      type="number"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white"
+                      placeholder="e.g. 150"
+                      value={newPricePoints}
+                      onChange={(e) => setNewPricePoints(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase">Short Description</label>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white"
+                      placeholder="High-fidelity front and backend secure automated simulation template bundle."
+                      value={newDesc}
+                      onChange={(e) => setNewDesc(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase">Mock Equivalent Price (USD)</label>
+                    <input
+                      type="number"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white"
+                      placeholder="e.g. 24"
+                      value={newPriceMoney}
+                      onChange={(e) => setNewPriceMoney(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase">Image URL (Optional)</label>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white"
+                      placeholder="https://images.unsplash.com/..."
+                      value={newPreviewImage}
+                      onChange={(e) => setNewPreviewImage(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <button
+                      type="submit"
+                      className="w-full py-2.5 bg-gradient-to-r from-cyan-550 to-emerald-500 hover:brightness-105 rounded-xl font-bold font-sans text-xs uppercase tracking-wide text-gray-950"
+                    >
+                      Publish Premium Product Asset
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Gallery Items Listing with Delete */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">Active Gallery Products ({galleryItems.length})</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {galleryItems.map((item) => (
+                    <div key={item.id} className="p-4 bg-slate-950/80 border border-slate-850 rounded-2xl flex justify-between items-start">
+                      <div className="space-y-1 max-w-[80%]">
+                        <span className="text-xs font-bold text-white block">{item.title}</span>
+                        <p className="text-[10px] text-gray-400 line-clamp-2">{item.description}</p>
+                        <div className="flex gap-2 items-center text-[9px] font-mono mt-1">
+                          <span className="text-cyan-400">{item.price_points} Points</span>
+                          <span className="text-gray-600">|</span>
+                          <span className="text-gray-500">${item.price_money} USD</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProduct(item.id)}
+                        className="p-1.5 rounded bg-rose-950 hover:bg-rose-900 border border-red-500/30 text-rose-400 hover:text-white"
+                        title="Delete product"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Marketplace listings (Accounts, numbers, boosts) with delete */}
+              <div className="space-y-3 pt-2">
+                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">User Marketplace Listings ({marketListings.length})</h3>
+                <div className="space-y-2">
+                  {marketListings.length === 0 ? (
+                    <div className="text-center py-6 text-slate-600 text-xs font-mono">No active user listings catalog records.</div>
+                  ) : (
+                    marketListings.map((list) => (
+                      <div key={list.id} className="p-3 bg-slate-950/60 border border-slate-850 rounded-xl flex justify-between items-center text-xs">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-200">{list.title}</span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950/40 text-cyan-400 border border-cyan-500/20">{list.category}</span>
+                          </div>
+                          <span className="text-[10px] text-gray-500 block mt-0.5">Seller: {list.seller_email} • Price: {list.price} pts</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMarketListing(list.id)}
+                          className="p-1 rounded bg-rose-950/30 hover:bg-rose-900/60 border border-rose-500/20 text-rose-400 hover:text-white"
+                          title="Purge record"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           )}

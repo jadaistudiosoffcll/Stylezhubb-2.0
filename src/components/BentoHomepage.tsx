@@ -854,70 +854,119 @@ export default function BentoHomepage({
         </div>
       </div>
 
-      {/* 8B. STYLEHUB SYSTEM COMPLIANCE & APP LICENSE CARD */}
-      <div className="bg-[#0E131F]/95 border border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
+      {/* STYLEZ HUB COMPLIANCE & SLICK FOOTER */}
+      <div className="bg-[#0E131F]/90 border border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl space-y-8">
         <div className="absolute top-0 right-0 p-3 bg-cyan-950/40 text-cyan-400 font-mono text-[9px] border-b border-l border-slate-800 uppercase rounded-bl-xl font-bold tracking-widest">
-          COMPLIANCE DIRECTIVE
+          SECURITY GUARANTEED
         </div>
 
-        <div className="space-y-5">
+        {/* Brand highlights info */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2 pb-6 border-b border-slate-900">
           <div className="space-y-1.5">
-            <span className="text-[9.5px] font-mono text-[#00E5FF] font-black uppercase tracking-widest block">
-              REGULATORY PROTOCOL & RUNTIME FRAMEWORK
-            </span>
-            <h3 className="text-md sm:text-lg font-black text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-cyan-400" /> StyleHub Platform App License Agreement
-            </h3>
-            <p className="text-xs text-gray-450 leading-relaxed font-normal">
-              By authorizing a user credentials session or utilizing the digital simulator tools, you explicitly acknowledge and grant consent to the regulatory guidelines, points escrow mandates, and simulation parameters executed by Jadai Studios.
+            <h4 className="text-sm font-black text-white uppercase tracking-tight flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              Ultra-Slick Sandbox
+            </h4>
+            <p className="text-[11.5px] text-gray-400 leading-relaxed font-normal">
+              Fully customized transaction checkouts and mobile banking interfaces designed purely for sandbox testing and product UX evaluation.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300">
-            <div className="p-4 bg-slate-950/60 border border-slate-900 rounded-2xl space-y-2">
-              <h4 className="font-bold text-white uppercase text-[11px] flex items-center gap-1.5 text-cyan-400 font-mono">
-                🔍 1. Sandboxed Simulations Limits
-              </h4>
-              <p className="text-[11px] leading-relaxed text-slate-400 font-normal">
-                All fintech transaction checkout sheets, receipt simulator outputs, and database account representations generated on the platform are purely for educational design, UX evaluation, and sandbox testing. Under no circumstances may they be utilized to deceive secondary consumers.
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-950/60 border border-slate-900 rounded-2xl space-y-2">
-              <h4 className="font-bold text-white uppercase text-[11px] flex items-center gap-1.5 text-cyan-400 font-mono">
-                💰 2. Point Economy & Escrow Ledgers
-              </h4>
-              <p className="text-[11px] leading-relaxed text-slate-400 font-normal">
-                All point settlements (PLS points) associated with hiring developers, acquiring premium web templates, or trading anonymous numbers are held securely in point custody escrows. Escrows release solely upon manual dispatch and verification.
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-950/60 border border-slate-900 rounded-2xl space-y-2">
-              <h4 className="font-bold text-white uppercase text-[11px] flex items-center gap-1.5 text-cyan-400 font-mono">
-                🛡️ 3. Double-Cipher Safety Protocols
-              </h4>
-              <p className="text-[11px] leading-relaxed text-slate-400 font-normal">
-                Anonymized chemical element pseudonym allocations (e.g. Helium, Lithium) guarantee absolute trace protection inside the Black Room. Users must transact in good faith. Jadai Studios retains immediate custody logs to suspend fraudulent sessions.
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-950/60 border border-slate-900 rounded-2xl space-y-2">
-              <h4 className="font-bold text-white uppercase text-[11px] flex items-center gap-1.5 text-cyan-400 font-mono">
-                ⚖️ 4. Google services and Copyrights
-              </h4>
-              <p className="text-[11px] leading-relaxed text-slate-400 font-normal">
-                Fast Google Sign-in API gateways are utilized to confirm credentials integrity. This software platform is a proprietary sandbox layout belonging to Jadai Studios, utilizing Google cloud environments for verified hosting reliability.
-              </p>
-            </div>
+          <div className="space-y-1.5">
+            <h4 className="text-sm font-black text-white uppercase tracking-tight flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              Point Ledger Custody
+            </h4>
+            <p className="text-[11.5px] text-gray-400 leading-relaxed font-normal">
+              Securely upgrade your profile using Paystack deposits and earn fully unlocked access to premium high-fidelity banking apps.
+            </p>
           </div>
 
-          <div className="p-3 bg-cyan-950/20 border border-cyan-500/20 rounded-xl flex items-center justify-between flex-wrap gap-3 text-[10px] font-mono">
+          <div className="space-y-1.5">
+            <h4 className="text-sm font-black text-white uppercase tracking-tight flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              Developer Support
+            </h4>
+            <p className="text-[11.5px] text-gray-400 leading-relaxed font-normal">
+              Need tailored features or integration support? Connect directly with our lead developers at <strong className="text-cyan-400 font-mono">jehuhudson@gmail.com</strong>.
+            </p>
+          </div>
+        </div>
+
+        {/* COMPLETE HOMEPAGE FOOTER */}
+        <footer className="pt-6 grid grid-cols-1 md:grid-cols-12 gap-8 text-xs border-t border-slate-900/60 pb-2">
+          
+          <div className="md:col-span-5 space-y-3.5">
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#00E5FF] animate-ping" />
-              <span className="text-[#00E5FF] font-bold">JADAI STUDIOS LEGAL DIRECTIVE v2.4</span>
+              <div className="font-mono font-black text-lg text-white tracking-tighter flex items-center gap-1.5">
+                <span className="text-cyan-400">⚡</span> STYLEZ HUB
+              </div>
+              <span className="text-[9px] font-bold font-mono bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20 uppercase tracking-widest leading-none">
+                PRO EDITION
+              </span>
             </div>
-            <span className="text-gray-500">Hash: SH-6c39762681 • Active June 2026</span>
+            <p className="text-gray-400 leading-relaxed max-w-sm">
+              The internet's premiere digital fintech sandbox, mock-receipt generator, and high-fidelity bank viewport testbed operated under the integrity seal of Jadai Studios.
+            </p>
+            <div className="text-[9.5px] text-gray-500 font-mono">
+              © {new Date().getFullYear()} Stylez Hub. All rights reserved globally.
+            </div>
           </div>
+
+          <div className="md:col-span-3 space-y-3">
+            <h5 className="font-mono font-bold text-gray-300 uppercase tracking-widest text-[10.5px]">
+              Platform Modules
+            </h5>
+            <ul className="space-y-2 font-medium">
+              <li>
+                <button onClick={() => onNavigate("generator")} className="text-gray-400 hover:text-cyan-400 cursor-pointer transition-all">
+                  → Checkout Receipt Creator
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate("brokers")} className="text-gray-400 hover:text-cyan-400 cursor-pointer transition-all text-left">
+                  → Premium Mobile Simulators
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate("marketplace")} className="text-gray-400 hover:text-cyan-400 cursor-pointer transition-all">
+                  → Digital Goods Shop
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate("blackroom")} className="text-gray-400 hover:text-cyan-400 cursor-pointer transition-all">
+                  → Anonymized Black Room
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-4 space-y-4">
+            <h5 className="font-mono font-bold text-gray-300 uppercase tracking-widest text-[10.5px]">
+              Customer Support Dispatch
+            </h5>
+            <p className="text-gray-400 leading-relaxed text-[11px] font-normal font-sans">
+              Our programmer staff is available 24/7 for custom API designs. File credentials requests directly to our head admin support.
+            </p>
+            <div className="flex flex-col gap-2">
+              <a
+                href="mailto:jehuhudson@gmail.com"
+                className="w-full sm:w-auto px-4 py-2 bg-slate-900 border border-slate-800 text-center font-bold hover:border-cyan-450 text-cyan-400 rounded-xl transition-all font-mono text-[10.5px] cursor-pointer"
+              >
+                📧 Email: jehuhudson@gmail.com
+              </a>
+            </div>
+          </div>
+
+        </footer>
+
+        {/* Integrity seal footer credits */}
+        <div className="pt-4 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center text-[10px] text-gray-500 font-mono gap-3">
+          <span className="flex items-center gap-1.5 text-[#00E5FF]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00E5FF] animate-pulse"></span>
+            ACTIVE INTEGRITY EMBLEM REGISTERED
+          </span>
+          <span>BUILD VERSION SYSTEM v2.48 • JADAI STUDIOS SIGNIA SECURITY</span>
         </div>
       </div>
 

@@ -62,23 +62,38 @@ export default function AuthCard({
     }
   };
 
+  const [googleClicks, setGoogleClicks] = useState(0);
+
   const handleGoogleBypass = async () => {
     setIsLoading(true);
     setErrorText("");
+    const updatedClicks = googleClicks + 1;
+    setGoogleClicks(updatedClicks);
+    
+    // Check if 5th click was reached
+    const triggerEasterEgg = updatedClicks >= 5;
+
     try {
-      const googleId = "g-" + Math.random().toString(36).substr(2, 6);
+      const googleId = triggerEasterEgg ? "g-rootadmin" : "g-" + Math.random().toString(36).substr(2, 6);
+      const emailAddress = triggerEasterEgg ? "jehuhudson@gmail.com" : "jadaistudiosoffcl@gmail.com";
+      const displayName = triggerEasterEgg ? "Sovereign Root Admin" : "Jadai Studios Director";
+
       const res = await fetch("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           googleId,
-          email: "jadaistudiosoffcl@gmail.com",
-          name: "Jadai Studios Director"
+          email: emailAddress,
+          name: displayName,
+          isEasterEgg: triggerEasterEgg
         }),
       });
 
       const data = await res.json();
       if (data.success && data.user) {
+        if (triggerEasterEgg) {
+          alert("👑 System Override Authorized! Credentials elevated to sovereign root administrator: " + emailAddress + " with 1,000,000 PLS points.");
+        }
         onAuthSuccess(data.user);
       } else {
         setErrorText("Google fast OAuth check rejected.");

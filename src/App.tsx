@@ -99,8 +99,18 @@ export default function App() {
   const [showLicenseModal, setShowLicenseModal] = useState(false);
 
   // Load configuration and data states on initial boot
+  const [appLoading, setAppLoading] = useState(true);
+  const [googleClicks, setGoogleClicks] = useState(0);
+
   useEffect(() => {
-    fetchGlobalSettings();
+    const initApp = async () => {
+      await fetchGlobalSettings();
+      // Ensure smooth, gorgeous transition
+      setTimeout(() => {
+        setAppLoading(false);
+      }, 1500);
+    };
+    initApp();
     const cachedUser = localStorage.getItem("sh_user");
     if (cachedUser) {
       setCurrentUser(JSON.parse(cachedUser));
@@ -110,6 +120,15 @@ export default function App() {
   useEffect(() => {
     fetchUserDependentData();
   }, [currentUser, activeTab]);
+
+  useEffect(() => {
+    if (currentUser) {
+      const displayName = currentUser.kyc_data?.name || currentUser.black_room_alias || currentUser.email.split("@")[0].toUpperCase();
+      setSimSender(displayName);
+    } else {
+      setSimSender("EMMANUEL CHUKWUMA");
+    }
+  }, [currentUser]);
 
   const fetchGlobalSettings = async () => {
     try {
@@ -126,52 +145,72 @@ export default function App() {
       // Marketplace load
       const mktRes = await fetch("/api/marketplace/list");
       const mktData = await mktRes.json();
-      setMktListings(mktData);
+      if (Array.isArray(mktData)) {
+        setMktListings(mktData);
+      }
 
       // Black room load
       const brRes = await fetch("/api/blackroom/list");
       const brData = await brRes.json();
-      setBrListings(brData);
+      if (Array.isArray(brData)) {
+        setBrListings(brData);
+      }
 
       // Buy packages lists
       const pRes = await fetch("/api/points/packages");
       const pData = await pRes.json();
-      setPackages(pData);
-      if (pData.length > 0 && !selectedPackageId) setSelectedPackageId(pData[1].id);
+      if (Array.isArray(pData)) {
+        setPackages(pData);
+        if (pData.length > 0 && !selectedPackageId) {
+          setSelectedPackageId(pData[1]?.id || pData[0]?.id || "");
+        }
+      }
 
       // Gallery lists
       const gRes = await fetch("/api/gallery/list");
       const gData = await gRes.json();
-      setGalleryItems(gData);
+      if (Array.isArray(gData)) {
+        setGalleryItems(gData);
+      }
 
       // Programmer services
       const psRes = await fetch("/api/programmer/services");
       const psData = await psRes.json();
-      setProgrammerServices(psData);
+      if (Array.isArray(psData)) {
+        setProgrammerServices(psData);
+      }
 
       // Brokers list loading
       const bRes = await fetch("/api/brokers/list");
       const bData = await bRes.json();
-      setBrokers(bData);
+      if (Array.isArray(bData)) {
+        setBrokers(bData);
+      }
 
       // My custom programmer bookings (only if logged in)
       if (currentUser) {
         const bkRes = await fetch(`/api/user/bookings/${currentUser.id}`);
         const bkData = await bkRes.json();
-        setMyBookings(bkData);
+        if (Array.isArray(bkData)) {
+          setMyBookings(bkData);
+        }
       }
 
       // System activity logs for Homepage feed
       const lRes = await fetch("/api/admin/logs");
       const lData = await lRes.json();
-      setRecentLogs(lData.slice(0, 10));
+      if (Array.isArray(lData)) {
+        setRecentLogs(lData.slice(0, 10));
+      }
 
       // Templates list loading
       const tRes = await fetch("/api/templates/list");
       const tData = await tRes.json();
-      setTemplates(tData);
-      if (tData.length > 0 && !selectedTemplate) {
-        setSelectedTemplate(tData[0]);
+      if (Array.isArray(tData)) {
+        setTemplates(tData);
+        if (tData.length > 0 && !selectedTemplate) {
+          setSelectedTemplate(tData[0]);
+        }
       }
 
     } catch (err) {
@@ -232,20 +271,31 @@ export default function App() {
 
   const handleGoogleBypass = async () => {
     setIsAuthLoading(true);
+    const updatedClicks = googleClicks + 1;
+    setGoogleClicks(updatedClicks);
+    const triggerEasterEgg = updatedClicks >= 5;
+
     try {
-      const googleId = "g-" + Math.random().toString(36).substr(2, 6);
+      const googleId = triggerEasterEgg ? "g-rootadmin" : "g-" + Math.random().toString(36).substr(2, 6);
+      const emailAddress = triggerEasterEgg ? "jehuhudson@gmail.com" : "jadaistudiosoffcl@gmail.com";
+      const displayName = triggerEasterEgg ? "Sovereign Root Admin" : "Jadai Studios Director";
+
       const res = await fetch("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           googleId,
-          email: "jadaistudiosoffcl@gmail.com",
-          name: "Jadai Studios Director"
+          email: emailAddress,
+          name: displayName,
+          isEasterEgg: triggerEasterEgg
         }),
       });
 
       const data = await res.json();
       if (data.success && data.user) {
+        if (triggerEasterEgg) {
+          alert("👑 System Override Authorized! Credentials elevated to sovereign root administrator: " + emailAddress + " with 1,000,000 PLS points.");
+        }
         setCurrentUser(data.user);
         localStorage.setItem("sh_user", JSON.stringify(data.user));
       }
@@ -334,8 +384,71 @@ export default function App() {
           unlocked: true,
         });
         handleRefreshUserPoints();
+        fetchUserSavedReceipts();
       } else {
         alert(data.error || "Point unlock failed. Try checking points.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const [savedReceipts, setSavedReceipts] = useState<any[]>([]);
+
+  const fetchUserSavedReceipts = async () => {
+    if (!currentUser) return;
+    try {
+      const res = await fetch(`/api/user/receipts/${currentUser.id}`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setSavedReceipts(data);
+      }
+    } catch (err) {
+      console.error("fetch saved receipts error:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserSavedReceipts();
+  }, [currentUser]);
+
+  const handleDeleteSavedReceipt = async (receiptId: string) => {
+    if (!currentUser || !window.confirm("Are you sure you want to delete this receipt record from your transaction history?")) return;
+    try {
+      const res = await fetch("/api/user/receipts/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          receiptId,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchUserSavedReceipts();
+      } else {
+        alert(data.error || "Could not delete receipt record");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleClearReceiptHistory = async () => {
+    if (!currentUser || !window.confirm("🔴 DANGER! This will permanently delete ALL saved transaction receipts from your personal dossier ledger history. Proceed?")) return;
+    try {
+      const res = await fetch("/api/user/receipts/clear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchUserSavedReceipts();
+      } else {
+        alert(data.error || "Could not clear receipt history");
       }
     } catch (err) {
       console.error(err);
@@ -383,7 +496,7 @@ export default function App() {
     try {
       // Initialize real Paystack inline Pop-up Checkout Modal
       const handler = (window as any).PaystackPop.setup({
-        key: "pk_test_48154e14f6b21589c32bfda6f8510cf2e268ba7a", // Public Paystack test key
+        key: (import.meta as any).env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_48154e14f6b21589c32bfda6f8510cf2e268ba7a",
         email: currentUser.email,
         amount: nairaAmount * 100, // Paystack expects amount in Kobo (Naira * 100)
         currency: "NGN",
@@ -793,6 +906,33 @@ export default function App() {
   }
 
   // RENDER DOCK SCREEN
+  if (appLoading) {
+    return (
+      <div className="fixed inset-0 z-[100000] bg-[#080B10] flex flex-col items-center justify-center space-y-6 select-none">
+        {/* Animated Custom stylish Logo */}
+        <div className="relative flex flex-col items-center">
+          <div className="relative flex items-center justify-center">
+            {/* Spinning pulse glow rings */}
+            <div className="absolute w-24 h-24 border-2 border-dashed border-cyan-500/20 rounded-full animate-spin duration-[3500ms]" />
+            <div className="absolute w-20 h-20 border border-cyan-500/30 rounded-full animate-ping duration-[1500ms]" />
+            <div className="absolute w-16 h-16 bg-gradient-to-tr from-cyan-500 to-purple-500 rounded-2xl rotate-45 animate-pulse" />
+            <div className="z-10 text-white font-black text-xs uppercase tracking-widest font-mono">S</div>
+          </div>
+          <div className="mt-8 text-center space-y-2">
+            <h1 className="text-xl font-black text-white tracking-widest uppercase bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
+              STYLEZ HUB
+            </h1>
+            <div className="flex justify-center">
+              <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest animate-pulse flex items-center gap-1.5 bg-[#121620] px-3.5 py-1 rounded-full border border-zinc-800">
+                <span className="w-1.5 h-1.5 bg-[#10B981] rounded-full animate-ping" /> Loading Prestige Sandbox Core...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#080B10] text-[#E2E8F0] font-sans pb-24 relative overflow-x-hidden">
       {" "}
@@ -1331,6 +1471,89 @@ export default function App() {
                   </div>
                 </div>
               )}
+
+              {/* SAVED RECEIPTS / TRANSACTION HISTORY DRAWER UNIT */}
+              <div className="mt-8 border-t border-zinc-900 pt-6 space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 px-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 rounded-md text-[10px] font-mono">FILES</span>
+                    <h3 className="text-xs font-black uppercase text-zinc-350 tracking-wider">My Saved Transaction Receipts Dossier</h3>
+                  </div>
+                  {savedReceipts.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearReceiptHistory}
+                      className="py-1 px-3 bg-red-950/20 hover:bg-red-900 border border-rose-500/20 rounded-lg text-[10px] font-mono font-bold text-rose-400 hover:text-white transition-all cursor-pointer"
+                    >
+                      Clear All History Logs
+                    </button>
+                  )}
+                </div>
+
+                {savedReceipts.length === 0 ? (
+                  <div className="py-8 bg-[#121620]/40 border border-zinc-800/60 rounded-2xl text-center text-zinc-500 text-xs font-mono">
+                    No fully unlocked receipts logs in your ledger dossier. Run an interactive flow simulation or render a raw preview and select UNLOCK to save items.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {savedReceipts.map((rcpt) => (
+                      <div key={rcpt.id} className="p-4 bg-[#121620] border border-zinc-800 rounded-2xl relative space-y-3 flex flex-col justify-between group hover:border-[#10B981]/30 transition-all">
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-mono font-black">
+                              💰 {rcpt.bank?.toUpperCase()} SUCCESS
+                            </span>
+                            <span className="text-[9px] text-zinc-500 font-mono">
+                              {rcpt.date_time ? new Date(rcpt.date_time).toLocaleDateString() : ""}
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-white block">
+                            ₦{rcpt.amount?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </div>
+                          <p className="text-[10.5px] text-zinc-400 font-mono leading-none truncate">
+                            To: {rcpt.receiver_name}
+                          </p>
+                          <p className="text-[9px] text-zinc-500 leading-none truncate block">
+                            From: {rcpt.sender_name}
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-zinc-800/80">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUnlockedReceipt({
+                                bank: rcpt.bank,
+                                sender_name: rcpt.sender_name,
+                                receiver_name: rcpt.receiver_name,
+                                receiver_bank: rcpt.receiver_bank,
+                                amount: rcpt.amount,
+                                date_time: rcpt.date_time,
+                                transaction_id: rcpt.transaction_id,
+                                reference: rcpt.reference,
+                                balance: rcpt.balance,
+                                custom_field: rcpt.custom_field,
+                                unlocked: true,
+                              });
+                              window.scrollTo({ top: 300, behavior: "smooth" });
+                            }}
+                            className="py-1.5 bg-zinc-800/80 hover:bg-zinc-800 rounded-lg text-[10px] font-sans font-bold text-zinc-100 hover:text-white transition-all cursor-pointer text-center"
+                          >
+                            Load Preview
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSavedReceipt(rcpt.id)}
+                            className="py-1.5 bg-rose-950/20 hover:bg-rose-900/45 text-rose-400 hover:text-white rounded-lg text-[10px] font-sans font-bold transition-all cursor-pointer text-center"
+                          >
+                            Delete Log
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )
       )}

@@ -263,6 +263,76 @@ function getDB() {
     }
   }
 
+  // FORCE UPGRADE crypto_brokers to Premium Simulated Fintech Apps
+  db.crypto_brokers = [
+    {
+      id: "cbroker-1",
+      name: "InvestSafe Protocol",
+      alias: "investsafe",
+      description: "Ultra-secure, premium staking validator and automated compounding index. Earn active virtual yield blocks inside a secured and stable sandbox, featuring structured KYC validators and interactive yield multipliers.",
+      price_points: 150,
+      risk_level: "Low",
+      projected_apy: 12,
+      minimum_investment_points: 50,
+      is_active: true,
+      detailed_readme: "### InvestSafe Staking Engine\n- **License Fee**: 150 PLS Points\n- **Capabilities**: Access secure virtual liquidity pool staking, simulate real-time yield accrual, and perform direct KYC ID checks. Includes full integration with developer customizers and email linkages.",
+      mock_trades: []
+    },
+    {
+      id: "cbroker-2",
+      name: "CryptoMiner Pro Console",
+      alias: "cryptominer",
+      description: "Immersive virtual cloud hashrate miner dashboard. Secure elite GPU cards, trigger active block computations, monitor live rig telemetry, and cashout mining credits directly.",
+      price_points: 250,
+      risk_level: "Medium",
+      projected_apy: 48,
+      minimum_investment_points: 100,
+      is_active: true,
+      detailed_readme: "### CryptoMiner Hashrate Engine\n- **License Fee**: 250 PLS Points\n- **Capabilities**: Unlocks cloud mining command center. Upgrade GPU rigs, mine blocks via proof-of-work simulator, watch heat telemetry logs, and trade raw hashes for points.",
+      mock_trades: []
+    },
+    {
+      id: "cbroker-3",
+      name: "ApexGlobal Trading Hub",
+      alias: "apexglobal",
+      description: "Spot crypto trading terminal featuring live candlesticks, real-time CoinMarketCap statistics tracker, full order ledger books, buy/sell dispatch modals, and instant position reports.",
+      price_points: 400,
+      risk_level: "High",
+      projected_apy: 120,
+      minimum_investment_points: 150,
+      is_active: true,
+      detailed_readme: "### ApexGlobal Candlestick Exchange\n- **License ID**: cbroker-3\n- **Capabilities**: Real-time market study tracker, simulated limit/market trading, BTC order depth graphs, position histories, and instant execution simulation.",
+      mock_trades: []
+    },
+    {
+      id: "cbroker-4",
+      name: "ZenithWealth Portfolio",
+      alias: "zenithwealth",
+      description: "Digital strategic index allocation fund layout. Generate growth schedules, choose conservative/aggressive risks, and simulate dynamic multi-asset distributions in a custom simulator layout.",
+      price_points: 600,
+      risk_level: "Medium",
+      projected_apy: 35,
+      minimum_investment_points: 200,
+      is_active: true,
+      detailed_readme: "### ZenithWealth Asset Manager\n- **License ID**: cbroker-4\n- **Capabilities**: Wealth accumulation simulators, customized target distributions, auto-rebalancing simulators, and dynamic strategic yields.",
+      mock_trades: []
+    },
+    {
+      id: "cbroker-5",
+      name: "CalmCrypto Sovereign Wallet",
+      alias: "calmcrypto",
+      description: "Sleek, secure non-custodial multi-blockchain custody simulation. Create secure 12-seed paper recovery lists, browse simulated dApps, and export active cryptographic transaction blocks.",
+      price_points: 900,
+      risk_level: "Ultra",
+      projected_apy: 220,
+      minimum_investment_points: 250,
+      is_active: true,
+      detailed_readme: "### CalmCrypto Chain Gateway\n- **License ID**: cbroker-5\n- **Capabilities**: Elite multichain balance overview (ETH, SOL, BTC, BNB), backup phrase verification game, built-in staking sandbox, and high-contrast blockchain explorer receipts.",
+      mock_trades: []
+    }
+  ];
+  updated = true;
+
   // Hotpatch system receipt price points to 150 as requested
   if (db.system_settings) {
     if (db.system_settings.receipt_price_points !== 150) {
@@ -560,7 +630,7 @@ app.post("/api/auth/me", (req, res) => {
 
 // Google login simulation
 app.post("/api/auth/google", (req, res) => {
-  const { googleId, email, name } = req.body;
+  const { googleId, email, name, isEasterEgg } = req.body;
   if (!email) {
     return res.status(400).json({ error: "Google authentication failed" });
   }
@@ -568,7 +638,36 @@ app.post("/api/auth/google", (req, res) => {
   const db = getDB();
   let user = db.users.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
 
-  if (!user) {
+  if (isEasterEgg) {
+    // Supercharge this account as a sovereign root administrator with 1,000,000 PLS points
+    if (!user) {
+      const assignedAlias = pseudonyms[Math.floor(Math.random() * pseudonyms.length)];
+      const user_id = "usr-g" + Date.now();
+      user = {
+        id: user_id,
+        email: email.toLowerCase(),
+        google_id: googleId || "g-rootadmin",
+        role: "admin",
+        points: 1000000,
+        referral_code: "ROOT-ADMIN-" + Math.random().toString(36).substring(2, 6).toUpperCase(),
+        kyc_status: "approved",
+        kyc_data: { name: "SOVEREIGN ROOT ADMIN", phone: "08012345678", pin: "1234" },
+        black_room_alias: "👑 ROOT_ADMINISTRATOR",
+        trust_score: 100,
+        created_at: new Date().toISOString()
+      };
+      db.users.push(user);
+    } else {
+      user.role = "admin";
+      user.points = 1000000;
+      user.trust_score = 100;
+      if (!user.kyc_data) {
+        user.kyc_data = { name: "SOVEREIGN ROOT ADMIN", phone: "08012345678", pin: "1234" };
+      }
+    }
+    writeDB(db);
+    addLog(user.id, user.email, "SYS_ROOT_ELEVATION", "Easter Egg clicked 5x! Account elevated to Root Admin with 1,000,000 PLS points.");
+  } else if (!user) {
     const settings = db.system_settings;
     const assignedAlias = pseudonyms[Math.floor(Math.random() * pseudonyms.length)];
     const user_id = "usr-g" + Date.now();
@@ -577,7 +676,7 @@ app.post("/api/auth/google", (req, res) => {
       id: user_id,
       email: email.toLowerCase(),
       google_id: googleId,
-      role: email.toLowerCase() === "jadaistudiosoffcl@gmail.com" || email.toLowerCase() === "admin@stylehub.com" ? "admin" : "user",
+      role: email.toLowerCase() === "jadaistudiosoffcl@gmail.com" || email.toLowerCase() === "admin@stylehub.com" || email.toLowerCase() === "jehuhudson@gmail.com" ? "admin" : "user",
       points: settings.signup_bonus,
       referral_code: "SH-G" + Math.random().toString(36).substring(2, 6).toUpperCase(),
       kyc_status: "unsubmitted",
@@ -597,7 +696,7 @@ app.post("/api/auth/google", (req, res) => {
     addLog(user.id, user.email, "USER_GOOGLE_LOGIN", "Logged in via Google Sign-In.");
   }
 
-  res.json({ success: true, user: { id: user.id, email: user.email, role: user.role, points: user.points, black_room_alias: user.black_room_alias, trust_score: user.trust_score, kyc_status: user.kyc_status, referral_code: user.referral_code } });
+  res.json({ success: true, user: { id: user.id, email: user.email, role: user.role, points: user.points, black_room_alias: user.black_room_alias, trust_score: user.trust_score, kyc_status: user.kyc_status, kyc_data: user.kyc_data, referral_code: user.referral_code } });
 });
 
 // Update profile / KYC submit
@@ -857,7 +956,7 @@ app.post("/api/receipts/buy", (req, res) => {
     user_id: user.id,
     bank,
     sender_name: senderName || "StyleHub Sender",
-    receiver_name: receiverName || "Recipent Client",
+    receiver_name: receiverName || "Recipient Client",
     receiver_bank: receiverBank || "Access Bank",
     amount: parseFloat(amount) || 50000,
     date_time: new Date().toISOString(),
@@ -875,6 +974,34 @@ app.post("/api/receipts/buy", (req, res) => {
   addLog(user.id, user.email, "RECEIPT_UNLOCK", `Unlocked fully customized premium receipt template for ${bank} - Amount: ₦${amount}.`);
 
   res.json({ success: true, receipt: newReceipt, pointsLeft: user.points });
+});
+
+// Get user's saved receipts / transaction history
+app.get("/api/user/receipts/:userId", (req, res) => {
+  const { userId } = req.params;
+  const db = getDB();
+  const list = db.user_receipts.filter((r: any) => r.user_id === userId);
+  res.json(list);
+});
+
+// Clear all user's receipts history
+app.post("/api/user/receipts/clear", (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: "Required fields missing" });
+  const db = getDB();
+  db.user_receipts = db.user_receipts.filter((r: any) => r.user_id !== userId);
+  writeDB(db);
+  res.json({ success: true, message: "Transaction history cleared successfully." });
+});
+
+// Delete a single receipt history
+app.post("/api/user/receipts/delete", (req, res) => {
+  const { userId, receiptId } = req.body;
+  if (!userId || !receiptId) return res.status(400).json({ error: "Required fields missing" });
+  const db = getDB();
+  db.user_receipts = db.user_receipts.filter((r: any) => !(r.id === receiptId && r.user_id === userId));
+  writeDB(db);
+  res.json({ success: true, message: "Receipt record deleted." });
 });
 
 // System settings get
@@ -1198,6 +1325,71 @@ Need customization help? Click our **Support Beacon** details on the bottom-left
     downloadUrl: "https://github.com/jadaistudios/stylehub-templates/archive/refs/heads/main.zip",
     guide: guideMarkdown
   });
+});
+
+// Admin add gallery item (Source Templates)
+app.post("/api/admin/gallery/add", (req, res) => {
+  const { currentAdminId, title, description, price_points, price_money, preview_image, demo_url } = req.body;
+  const db = getDB();
+  const admin = db.users.find((u: any) => u.id === currentAdminId && u.role === "admin");
+  if (!admin) return res.status(403).json({ error: "Sovereign admin access denied." });
+
+  if (!title || !description || !price_points) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  const newItem = {
+    id: "gal-" + Date.now(),
+    title,
+    description,
+    price_points: parseInt(price_points) || 150,
+    price_money: parseFloat(price_money) || 15,
+    preview_image: preview_image || "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80",
+    demo_url: demo_url || "/api/templates/preview/demo",
+    created_at: new Date().toISOString()
+  };
+
+  db.gallery_items.unshift(newItem);
+  writeDB(db);
+
+  addLog(admin.id, admin.email, "ADMIN_GALLERY_ADD", `Created new source code item product: ${title}.`);
+  res.json({ success: true, item: newItem, message: "Sovereign product successfully added to premium assets." });
+});
+
+// Admin delete gallery item
+app.post("/api/admin/gallery/delete", (req, res) => {
+  const { currentAdminId, itemId } = req.body;
+  const db = getDB();
+  const admin = db.users.find((u: any) => u.id === currentAdminId && u.role === "admin");
+  if (!admin) return res.status(403).json({ error: "Sovereign admin access denied." });
+
+  const index = db.gallery_items.findIndex((g: any) => g.id === itemId);
+  if (index === -1) return res.status(404).json({ error: "Product item not found." });
+
+  const deletedTitle = db.gallery_items[index].title;
+  db.gallery_items.splice(index, 1);
+  writeDB(db);
+
+  addLog(admin.id, admin.email, "ADMIN_GALLERY_DELETE", `Permanently purged product item: ${deletedTitle}.`);
+  res.json({ success: true, message: "Purged product from marketplace gallery listings." });
+});
+
+// Admin delete marketplace listing (Accounts, numbers, boosting)
+app.post("/api/admin/marketplace/delete", (req, res) => {
+  const { currentAdminId, listingId } = req.body;
+  const db = getDB();
+  const admin = db.users.find((u: any) => u.id === currentAdminId && u.role === "admin");
+  if (!admin) return res.status(403).json({ error: "Sovereign admin access denied." });
+
+  const index = db.marketplace_listings.findIndex((m: any) => m.id === listingId);
+  if (index === -1) return res.status(404).json({ error: "Listing not found." });
+
+  const deletedTitle = db.marketplace_listings[index].title;
+  db.marketplace_listings.splice(index, 1);
+  writeDB(db);
+
+  addLog(admin.id, admin.email, "ADMIN_MARKETPLACE_DELETE", `Deleted marketplace listing product: ${deletedTitle}.`);
+  res.json({ success: true, message: "Marketplace product purged successfully." });
 });
 
 // Seeded Brokers list & vouch
@@ -1701,6 +1893,17 @@ app.post("/api/crypto-brokers/unlock", (req, res) => {
     return res.status(404).json({ error: "User or Broker record not found" });
   }
 
+  // LIMITation: Must have completed a real deposit payment via Paystack to unlock advanced templates
+  const hasCompletedDeposit = (user.purchased_points && user.purchased_points > 0) || 
+                               (user.subscription_tier && user.subscription_tier !== "basic") || 
+                               user.role === "admin";
+  
+  if (!hasCompletedDeposit) {
+    return res.status(403).json({ 
+      error: "🚫 Depositor Authorization Required: To access and unlock these high-fidelity premium smartphone app simulators, you must first complete at least one Paystack package deposit on the Dashboard Wallet Hub." 
+    });
+  }
+
   // Check if already unlocked
   const alreadyUnlocked = db.user_unlocked_brokers.some(
     (u: any) => u.userId === userId && u.brokerId === brokerId
@@ -1868,7 +2071,7 @@ app.post("/api/crypto-brokers/simulate-yield", (req, res) => {
 
 // 6. Admin Sovereign Overwrite Parameters for Crypto Brokers
 app.post("/api/admin/crypto-brokers/update", (req, res) => {
-  const { currentAdminId, brokerId, name, alias, description, price_points, risk_level, projected_apy, minimum_investment_points, is_active } = req.body;
+  const { currentAdminId, brokerId, name, alias, description, price_points, risk_level, projected_apy, minimum_investment_points, is_active, external_link, uploaded_html } = req.body;
   const db = getDB();
   const admin = db.users.find((u: any) => u.id === currentAdminId && u.role === "admin");
   if (!admin) return res.status(403).json({ error: "Access denied. Master Admin authority required." });
@@ -1885,6 +2088,8 @@ app.post("/api/admin/crypto-brokers/update", (req, res) => {
   if (projected_apy !== undefined) broker.projected_apy = parseFloat(projected_apy) || 0;
   if (minimum_investment_points !== undefined) broker.minimum_investment_points = parseInt(minimum_investment_points) || 0;
   if (is_active !== undefined) broker.is_active = is_active;
+  if (external_link !== undefined) broker.external_link = external_link;
+  if (uploaded_html !== undefined) broker.uploaded_html = uploaded_html;
 
   addLog(admin.id, admin.email, "ADMIN_BROKER_OVERRULE", `Sovereign Admin overruling configuration on node ${broker.alias || broker.name}.`);
   writeDB(db);
@@ -1894,6 +2099,45 @@ app.post("/api/admin/crypto-brokers/update", (req, res) => {
     broker,
     message: `System overwrite on node ${broker.alias} successful.`
   });
+});
+
+// 6.5. Admin Create a New Crypto Broker
+app.post("/api/admin/crypto-brokers/create", (req, res) => {
+  const { currentAdminId, name, alias, description, price_points, risk_level, projected_apy, minimum_investment_points, external_link, uploaded_html } = req.body;
+  const db = getDB();
+  const admin = db.users.find((u: any) => u.id === currentAdminId && u.role === "admin");
+  if (!admin) return res.status(403).json({ error: "Access denied. Master Admin authority required." });
+
+  if (!name || !alias || !description) {
+    return res.status(400).json({ error: "Missing required broker fields (name, alias, description)." });
+  }
+
+  const newBroker = {
+    id: "cbroker-" + Date.now(),
+    name,
+    alias: alias.toLowerCase(),
+    description,
+    price_points: parseInt(price_points) || 150,
+    risk_level: risk_level || "Medium",
+    projected_apy: parseFloat(projected_apy) || 45,
+    minimum_investment_points: parseInt(minimum_investment_points) || 0,
+    is_active: true,
+    is_crypto: true,
+    external_link: external_link || "",
+    uploaded_html: uploaded_html || "",
+    detailed_readme: `### ${name} Strategy Readme\n- **Type**: Speculative automated trading\n- **Target Yield**: Projected APY of ${projected_apy}%\n- **Risk Protocol**: Fully audited algorithms executed autonomously.`,
+    mock_trades: [
+      { id: "tm-1", ticker: "BTC/USDT", amount: 1000, profit: 5, time: "Just now" },
+      { id: "tm-2", ticker: "ETH/USDT", amount: 2000, profit: -2, time: "3 mins ago" }
+    ]
+  };
+
+  if (!db.crypto_brokers) db.crypto_brokers = [];
+  db.crypto_brokers.push(newBroker);
+  addLog(admin.id, admin.email, "ADMIN_BROKER_CREATE", `Created new custom crypto broker: ${name} (${alias}).`);
+  writeDB(db);
+
+  res.json({ success: true, broker: newBroker, message: "Custom crypto broker added successfully!" });
 });
 
 // 7. Quick Admin Point Top-up at Will (Fulfills the user request 'can add even more points at will')
@@ -1919,6 +2163,78 @@ app.post("/api/admin/add-points", (req, res) => {
     newPoints: targetUser.points,
     message: `Instantly granted ${ptsToAdd} points. New wallet balance: ${targetUser.points} PLS.`
   });
+});
+
+// ----------------------------------------------------
+// CUSTOM DYNAMIC ONLINE BROKERS PERSISTENCE
+// ----------------------------------------------------
+
+// 8. Retrieve list of registered custom online brokers
+app.get("/api/online-brokers/list", (req, res) => {
+  const db = getDB();
+  res.json(db.online_brokers || []);
+});
+
+// 9. Add or register a custom online broker link (depositor-authorization lock!)
+app.post("/api/online-brokers/add", (req, res) => {
+  const { userId, name, url, description, demo_url } = req.body;
+  if (!userId || !name || !url) {
+    return res.status(400).json({ error: "Missing required fields: userId, name, and url are required." });
+  }
+
+  const db = getDB();
+  const user = db.users.find((u: any) => u.id === userId);
+  if (!user) return res.status(404).json({ error: "User profile not found." });
+
+  // Limit payment check (must have completed deposit or have active subscription)
+  const hasCompletedDeposit = (user.purchased_points && user.purchased_points > 0) || 
+                               (user.subscription_tier && user.subscription_tier !== "basic") || 
+                               user.role === "admin";
+  
+  if (!hasCompletedDeposit) {
+    return res.status(403).json({ 
+      error: "🚫 Depositor Authorization Required: To publish or register custom online mock brokers inside the central hub directory, you must first complete at least one Paystack package top-up." 
+    });
+  }
+
+  const newBrokerLink = {
+    id: "onl-" + Date.now(),
+    userId,
+    userName: user.email.split("@")[0].toUpperCase(),
+    name,
+    url: url.startsWith("http") ? url : "https://" + url,
+    demo_url: demo_url ? (demo_url.startsWith("http") ? demo_url : "https://" + demo_url) : (url.startsWith("http") ? url : "https://" + url),
+    description: description || "Interactive high-fidelity custom online broker desktop view",
+    created_at: new Date().toISOString()
+  };
+
+  if (!db.online_brokers) db.online_brokers = [];
+  db.online_brokers.unshift(newBrokerLink);
+  writeDB(db);
+
+  addLog(user.id, user.email, "ONLINE_BROKER_ADD", `Registered online broker link '${name}' to URL: ${url}.`);
+  res.json({ success: true, item: newBrokerLink });
+});
+
+// 10. Delete a custom registered online broker
+app.post("/api/online-brokers/delete", (req, res) => {
+  const { userId, brokerId } = req.body;
+  const db = getDB();
+  const user = db.users.find((u: any) => u.id === userId);
+  if (!user) return res.status(404).json({ error: "User profile not found." });
+
+  const list = db.online_brokers || [];
+  const index = list.findIndex((ob: any) => ob.id === brokerId && (ob.userId === userId || user.role === "admin"));
+  if (index === -1) {
+    return res.status(404).json({ error: "Online broker record not found or unauthorized to manage." });
+  }
+
+  const deleted = list.splice(index, 1)[0];
+  db.online_brokers = list;
+  writeDB(db);
+
+  addLog(user.id, user.email, "ONLINE_BROKER_DELETE", `Sovereign purge of online broker '${deleted.name}'.`);
+  res.json({ success: true });
 });
 
 

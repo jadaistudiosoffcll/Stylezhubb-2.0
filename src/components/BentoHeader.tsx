@@ -42,14 +42,9 @@ export default function BentoHeader({ user, settings, onLogout, activeNav }: Ben
           <span className="text-[9px] font-mono tracking-widest text-[#10B981] uppercase font-bold px-3 py-1 rounded-md bg-emerald-950/30 border border-emerald-500/20">
             StyleHub Fintech
           </span>
-          <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[9.5px] font-bold">
-            <span className="text-gray-500 text-[8px] font-mono uppercase tracking-widest mr-0.5">SPONSORED BY</span>
-            <span className="text-[#4285F4]">G</span>
-            <span className="text-[#EA4335]">o</span>
-            <span className="text-[#FBBC05]">o</span>
-            <span className="text-[#4285F4]">g</span>
-            <span className="text-[#34A853]">l</span>
-            <span className="text-[#EA4335]">e</span>
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-linear-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 text-[9.5px] font-black tracking-wider text-cyan-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            STYLEZ HUB PRESTIGE
           </div>
           {settings?.custom_emblem_html && (
             <div
